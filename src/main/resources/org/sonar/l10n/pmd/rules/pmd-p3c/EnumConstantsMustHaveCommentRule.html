@@ -1,6 +1,8 @@
-<p>Look for qualified this usages in the same class.</p>
+<p>所有的枚举类型字段必须要有注释，说明每个数据项的用途。</p>
 <p>Examples:</p>
 <pre>
+
+
     public enum TestEnum {
         /**
          * agree
@@ -10,15 +12,17 @@
          * reject
          */
         reject("reject");
-
+        
         private String action;
-
+    
         TestEnum(String action) {
             this.action = action;
         }
-
+    
         public String getAction() {
             return action;
         }
     }
+
+        
 </pre>

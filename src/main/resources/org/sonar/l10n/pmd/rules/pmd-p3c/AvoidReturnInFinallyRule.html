@@ -1,7 +1,9 @@
-<p>Look for qualified this usages in the same class.</p>
+<p>不能在finally块中使用return，finally块中的return返回后方法结束执行，不会再执行try块中的return语句。</p>
 <p>Examples:</p>
 <pre>
-    Negative example:
+
+            
+Negative example:
     public static Long readFileLength(String fileName) {
         try {
             File file = new File(fileName);
@@ -14,5 +16,6 @@
             return 0L;
         }
     }
-</pre>
 
+        
+</pre>
