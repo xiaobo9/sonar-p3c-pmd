@@ -21,7 +21,7 @@ package org.sonar.plugins.pmd.profile;
 
 import com.google.common.base.CharMatcher;
 import com.google.common.collect.Lists;
-import org.fest.assertions.Condition;
+import org.assertj.core.api.Condition;
 import org.junit.Test;
 import org.junit.rules.ExpectedException;
 import org.mockito.invocation.InvocationOnMock;
@@ -43,7 +43,7 @@ import java.io.StringWriter;
 import java.io.Writer;
 import java.util.List;
 
-import static org.fest.assertions.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Matchers.any;
 import static org.mockito.Matchers.anyString;
 import static org.mockito.Mockito.*;

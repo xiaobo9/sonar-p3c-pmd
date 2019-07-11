@@ -3,26 +3,16 @@
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <modelVersion>4.0.0</modelVersion>
 
-    <parent>
-        <groupId>org.sonarsource.parent</groupId>
-        <artifactId>parent</artifactId>
-        <version>24</version>
-    </parent>
-
     <groupId>org.sonarsource.pmd</groupId>
-    <artifactId>sonar-pmd-plugin</artifactId>
-    <version>2.6</version>
+    <artifactId>sonar-pmd-p3c-plugin</artifactId>
+    <version>1.0.0</version>
     <packaging>sonar-plugin</packaging>
 
-    <name>SonarQube PMD Plugin</name>
+    <name>SonarQube PMD P3C Plugin</name>
     <description>PMD is a tool that looks for potential problems like possible bugs, dead code, suboptimal code,
         overcomplicated expressions or duplicate code.
     </description>
     <inceptionYear>2012</inceptionYear>
-    <organization>
-        <name>SonarSource</name>
-        <url>http://www.sonarsource.com</url>
-    </organization>
     <licenses>
         <license>
             <name>GNU LGPL 3</name>
@@ -31,48 +21,28 @@
         </license>
     </licenses>
 
-    <developers>
-        <developer>
-            <id>godin</id>
-            <name>Evgeny Mandrikov</name>
-            <organization>SonarSource</organization>
-        </developer>
-        <developer>
-            <name>Tim Webster</name>
-            <email>tim.webster@gmail.com</email>
-        </developer>
-    </developers>
-    <scm>
-        <connection>scm:git:git@github.com:SonarQubeCommunity/sonar-pmd.git</connection>
-        <developerConnection>scm:git:git@github.com:SonarQubeCommunity/sonar-pmd.git</developerConnection>
-        <url>https://github.com/SonarQubeCommunity/sonar-pmd</url>
-        <tag>2.6</tag>
-    </scm>
-    <url>https://github.com/SonarQubeCommunity/sonar-pmd</url>
-    <issueManagement>
-        <system>Github</system>
-        <url>https://github.com/SonarQubeCommunity/sonar-pmd/issues</url>
-    </issueManagement>
-
     <properties>
-        <maven.test.redirectTestOutputToFile>true</maven.test.redirectTestOutputToFile>
+        <project.build.sourceEncoding>utf-8</project.build.sourceEncoding>
+        <java.version>1.8</java.version>
 
+        <maven.test.redirectTestOutputToFile>true</maven.test.redirectTestOutputToFile>
         <pmd.version>6.15.0</pmd.version>
-        <sonar.version>4.5.4</sonar.version>
-        <sonar-java.version>4.2</sonar-java.version>
+        <sonar.version>6.7.4</sonar.version>
+        <assertj.version>3.12.2</assertj.version>
+        <!--        <sonar-java.version>4.2</sonar-java.version>-->
 
         <!-- Configuration for sonar-packaging-maven-plugin -->
-        <sonar.pluginKey>pmd</sonar.pluginKey>
-        <sonar.pluginName>PMD</sonar.pluginName>
-        <sonar.pluginClass>org.sonar.plugins.pmd.PmdPlugin</sonar.pluginClass>
+        <sonar.pluginKey>pmd-p3c</sonar.pluginKey>
+        <sonar.pluginName>PMD-P3C</sonar.pluginName>
+        <sonar.pluginClass>org.sonar.plugins.pmd.PmdP3cPlugin</sonar.pluginClass>
         <sonar.pluginDescription>
-            <![CDATA[Analyze Java code with <a href="http://pmd.sourceforge.net/">PMD</a>.]]></sonar.pluginDescription>
-        <sonar.requiresPlugin>java:${sonar-java.version}</sonar.requiresPlugin>
+            <![CDATA[Analyze Java code with PMD P3C.]]></sonar.pluginDescription>
+        <!--        <sonar.requiresPlugin>java:${sonar-java.version}</sonar.requiresPlugin>-->
     </properties>
 
     <dependencies>
         <dependency>
-            <groupId>org.codehaus.sonar</groupId>
+            <groupId>org.sonarsource.sonarqube</groupId>
             <artifactId>sonar-plugin-api</artifactId>
             <scope>provided</scope>
             <version>${sonar.version}</version>
@@ -84,15 +54,36 @@
             </exclusions>
         </dependency>
         <dependency>
-            <groupId>org.sonarsource.java</groupId>
-            <artifactId>sonar-java-plugin</artifactId>
-            <version>${sonar-java.version}</version>
-            <scope>provided</scope>
+            <groupId>org.sonarsource.sslr-squid-bridge</groupId>
+            <artifactId>sslr-squid-bridge</artifactId>
+            <version>2.7.0.377</version>
+            <exclusions>
+                <exclusion>
+                    <groupId>org.picocontainer</groupId>
+                    <artifactId>picocontainer</artifactId>
+                </exclusion>
+                <exclusion>
+                    <groupId>commons-lang</groupId>
+                    <artifactId>commons-lang</artifactId>
+                </exclusion>
+                <exclusion>
+                    <groupId>com.google.code.findbugs</groupId>
+                    <artifactId>jsr305</artifactId>
+                </exclusion>
+                <exclusion>
+                    <groupId>com.google.guava</groupId>
+                    <artifactId>guava</artifactId>
+                </exclusion>
+                <exclusion>
+                    <groupId>org.slf4j</groupId>
+                    <artifactId>slf4j-api</artifactId>
+                </exclusion>
+            </exclusions>
         </dependency>
         <dependency>
-            <groupId>org.codehaus.sonar.sslr-squid-bridge</groupId>
-            <artifactId>sslr-squid-bridge</artifactId>
-            <version>2.6</version>
+            <groupId>com.google.guava</groupId>
+            <artifactId>guava</artifactId>
+            <version>19.0</version>
         </dependency>
         <dependency>
             <groupId>net.sourceforge.pmd</groupId>
@@ -121,6 +112,23 @@
                 </exclusion>
             </exclusions>
         </dependency>
+        <dependency>
+            <groupId>org.sonarsource.java</groupId>
+            <artifactId>java-frontend</artifactId>
+            <version>5.12.1.17771</version>
+            <scope>provided</scope>
+            <exclusions>
+                <exclusion>
+                    <groupId>com.google.code.gson</groupId>
+                    <artifactId>gson</artifactId>
+                </exclusion>
+                <exclusion>
+                    <groupId>com.google.code.findbugs</groupId>
+                    <artifactId>jsr305</artifactId>
+                </exclusion>
+            </exclusions>
+        </dependency>
+
         <dependency>
             <groupId>net.sourceforge.pmd</groupId>
             <artifactId>pmd-java</artifactId>
@@ -152,7 +160,26 @@
             <artifactId>jdom</artifactId>
             <version>1.0</version>
         </dependency>
-
+        <dependency>
+            <groupId>commons-io</groupId>
+            <artifactId>commons-io</artifactId>
+            <version>2.4</version>
+        </dependency>
+        <dependency>
+            <groupId>org.slf4j</groupId>
+            <artifactId>slf4j-api</artifactId>
+            <version>1.7.5</version>
+        </dependency>
+        <dependency>
+            <groupId>org.slf4j</groupId>
+            <artifactId>jcl-over-slf4j</artifactId>
+            <version>1.7.5</version>
+        </dependency>
+        <dependency>
+            <groupId>org.slf4j</groupId>
+            <artifactId>log4j-over-slf4j</artifactId>
+            <version>1.7.5</version>
+        </dependency>
         <!-- TODO http://jira.codehaus.org/browse/SONAR-2011
         We need following dependency, otherwise we will receive
         java.lang.NoClassDefFoundError: org/apache/maven/project/MavenProject
@@ -166,7 +193,7 @@
         </dependency>
 
         <dependency>
-            <groupId>org.codehaus.sonar</groupId>
+            <groupId>org.sonarsource.sonarqube</groupId>
             <artifactId>sonar-testing-harness</artifactId>
             <scope>test</scope>
             <version>${sonar.version}</version>
@@ -178,38 +205,19 @@
             <version>1.9.5</version>
             <scope>test</scope>
         </dependency>
-
         <dependency>
-            <groupId>commons-io</groupId>
-            <artifactId>commons-io</artifactId>
-            <version>2.4</version>
+            <groupId>org.assertj</groupId>
+            <artifactId>assertj-core</artifactId>
+            <version>${assertj.version}</version>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>dom4j</groupId>
+            <artifactId>dom4j</artifactId>
+            <version>1.6.1</version>
             <scope>test</scope>
         </dependency>
     </dependencies>
-    <dependencyManagement>
-        <dependencies>
-            <dependency>
-                <groupId>com.google.guava</groupId>
-                <artifactId>guava</artifactId>
-                <version>19.0</version>
-            </dependency>
-            <dependency>
-                <groupId>org.slf4j</groupId>
-                <artifactId>slf4j-api</artifactId>
-                <version>1.7.5</version>
-            </dependency>
-            <dependency>
-                <groupId>org.slf4j</groupId>
-                <artifactId>jcl-over-slf4j</artifactId>
-                <version>1.7.5</version>
-            </dependency>
-            <dependency>
-                <groupId>org.slf4j</groupId>
-                <artifactId>log4j-over-slf4j</artifactId>
-                <version>1.7.5</version>
-            </dependency>
-        </dependencies>
-    </dependencyManagement>
 
     <build>
 
@@ -230,6 +238,21 @@
         </testResources>
 
         <plugins>
+            <plugin>
+                <groupId>org.sonarsource.sonar-packaging-maven-plugin</groupId>
+                <artifactId>sonar-packaging-maven-plugin</artifactId>
+                <version>1.18.0.372</version>
+                <extensions>true</extensions>
+                <configuration>
+                    <sonarQubeMinVersion>6.6</sonarQubeMinVersion>
+                    <requirePlugins>java:4.15.0.12310</requirePlugins>
+                    <pluginKey>pmd-p3c</pluginKey>
+                    <pluginName>pmd p3c</pluginName>
+                    <pluginClass>org.sonar.plugins.pmd.PmdP3cPlugin</pluginClass>
+                    <sonarLintSupported>true</sonarLintSupported>
+                    <sonarQubeMinVersion>6.7</sonarQubeMinVersion>
+                </configuration>
+            </plugin>
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-enforcer-plugin</artifactId>
@@ -267,6 +290,14 @@
                         </goals>
                     </execution>
                 </executions>
+            </plugin>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-compiler-plugin</artifactId>
+                <configuration>
+                    <source>${java.version}</source>
+                    <target>${java.version}</target>
+                </configuration>
             </plugin>
         </plugins>
     </build>

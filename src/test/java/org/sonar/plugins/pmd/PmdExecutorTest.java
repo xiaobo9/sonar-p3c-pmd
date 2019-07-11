@@ -35,9 +35,9 @@ import org.sonar.api.batch.fs.InputFile;
 import org.sonar.api.batch.fs.InputFile.Type;
 import org.sonar.api.batch.fs.internal.DefaultFileSystem;
 import org.sonar.api.batch.fs.internal.DefaultInputFile;
-import org.sonar.api.config.Settings;
+import org.sonar.api.batch.fs.internal.TestInputFileBuilder;
+import org.sonar.api.config.internal.MapSettings;
 import org.sonar.api.profiles.RulesProfile;
-import org.sonar.plugins.java.Java;
 import org.sonar.plugins.java.api.JavaResourceLocator;
 import org.sonar.plugins.pmd.profile.PmdProfileExporter;
 
@@ -47,7 +47,7 @@ import java.net.URI;
 import java.net.URL;
 import java.net.URLClassLoader;
 
-import static org.fest.assertions.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Matchers.any;
 import static org.mockito.Matchers.eq;
 import static org.mockito.Mockito.*;
@@ -61,7 +61,7 @@ public class PmdExecutorTest {
     PmdConfiguration pmdConfiguration = mock(PmdConfiguration.class);
     PmdTemplate pmdTemplate = mock(PmdTemplate.class);
     JavaResourceLocator javaResourceLocator = mock(JavaResourceLocator.class);
-    Settings settings = new Settings();
+    private final MapSettings settings = new MapSettings();
     PmdExecutor realPmdExecutor = new PmdExecutor(fileSystem, rulesProfile, pmdProfileExporter, pmdConfiguration, javaResourceLocator,
             settings);
 
@@ -166,11 +166,11 @@ public class PmdExecutorTest {
         }
     }
 
-    static InputFile file(String path, Type type) {
-        return new DefaultInputFile(path)
-                .setAbsolutePath(new File(path).getAbsolutePath())
+    private static DefaultInputFile file(String path, Type type) {
+        return TestInputFileBuilder.create("sonar-pmd-test", path)
                 .setType(type)
-                .setLanguage(Java.KEY);
+                .setLanguage(PmdConstants.JAVA)
+                .build();
     }
 
     private void setupPmdRuleSet(String repositoryKey, String profileFileName) throws IOException {

@@ -1,3 +1,22 @@
+/*
+ * SonarQube PMD Plugin
+ * Copyright (C) 2012 SonarSource
+ * sonarqube@googlegroups.com
+ *
+ * This program is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU Lesser General Public
+ * License as published by the Free Software Foundation; either
+ * version 3 of the License, or (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+ * Lesser General Public License for more details.
+ *
+ * You should have received a copy of the GNU Lesser General Public
+ * License along with this program; if not, write to the Free Software
+ * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02
+ */
 package org.sonar.plugins.pmd;
 
 import org.apache.commons.io.IOUtils;
@@ -33,7 +52,7 @@ public class OutHtml {
         Element rootEl = getElement(file1);
         List<Element> entries = rootEl.elements("entry");
         for (Element entry : entries) {
-            map.put(attributeValue(entry, "key"), entry.getTextTrim());
+            map.put(attributeValue(entry, "key"), entry.getText());
         }
 
         File dir = Paths.get(parent, "rulesets", "java").toFile();
@@ -47,7 +66,9 @@ public class OutHtml {
             rootEl = getElement(file);
             List<Element> ruleEls = rootEl.elements("rule");
             for (Element ruleEl : ruleEls) {
-                rules.add(Rule.getRule(scope, ruleEl, map));
+                Rule rule = Rule.getRule(scope, ruleEl, map);
+                rule.setFile("rulesets/java/" + fileName + "/" + rule.getName());
+                rules.add(rule);
             }
         }
 
@@ -60,6 +81,37 @@ public class OutHtml {
         }
 
 
+        pmdModelXml(rules);
+
+        p3cRulesXml(rules);
+    }
+
+    private static void p3cRulesXml(List<Rule> rules) throws IOException {
+        Map<String, String> map = new HashMap<>();
+
+        map.put("1", "CRITICAL");
+        map.put("2", "MAJOR");
+        map.put("3", "MINOR");
+        Document document = DocumentHelper.createDocument();
+        Element rootEl = document.addElement("rules");
+
+        for (Rule rule : rules) {
+            Element ruleEl = rootEl.addElement("rule");
+            ruleEl.addAttribute("key", rule.getName());
+            ruleEl.addElement("priority").setText(map.get(rule.getPriority()));
+            ruleEl.addElement("configKey").addCDATA(rule.getFile());
+        }
+
+        String parent = "D:\\git\\sonar\\sonar-p3c-pmd\\src\\main\\resources";
+
+        OutputFormat format = OutputFormat.createPrettyPrint();// 创建文件输出的时候，自动缩进的格式
+        format.setEncoding("UTF-8");//设置编码
+        XMLWriter writer = new XMLWriter(new FileWriter(parent + "\\org\\sonar\\plugins\\pmd\\rules-p3c.xml"), format);
+        writer.write(document);
+        writer.close();
+    }
+
+    private static void pmdModelXml(List<Rule> rules) throws IOException {
         Document document = DocumentHelper.createDocument();
         Element p3c = document.addElement("sqale").addElement("chc");
         p3c.addElement("key").setText("P3C-PMD");
@@ -117,6 +169,9 @@ public class OutHtml {
 
         private String description;
 
+        private String file;
+
+        private String priority;
 
         private String example;
 
@@ -193,6 +248,7 @@ public class OutHtml {
             if (description != null) {
                 rule.setDescription(map.get(description.getTextTrim()));
             }
+            rule.setPriority(ruleEl.element("priority").getText().trim());
             Element example = ruleEl.element("example");
             if (example != null) {
                 rule.setExample(example.getText());
@@ -203,15 +259,15 @@ public class OutHtml {
         private void generateHtml(String dir) throws IOException {
             StringBuilder builder = new StringBuilder();
 
-            if (StringUtils.isNotEmpty(message)) {
-                builder.append(String.format("<p>%s</p>", message)).append("\n");
-            }
+            builder.append(String.format("<p>%s</p>", message.trim()));
 
             if (StringUtils.isNotEmpty(description)) {
-                builder.append(String.format("<p>%s</p>", description)).append("\n");
+                builder.append("\n<pre>\n");
+                builder.append(description);
+                builder.append("\n</pre>");
             }
 
-            builder.append("<p>Examples:</p>");
+            builder.append("\n").append("<p>Examples:</p>");
             if (StringUtils.isNotEmpty(example)) {
                 builder.append("\n<pre>\n");
                 builder.append(example);
@@ -223,5 +279,20 @@ public class OutHtml {
             }
         }
 
+        public String getFile() {
+            return file;
+        }
+
+        public void setFile(String file) {
+            this.file = file;
+        }
+
+        public String getPriority() {
+            return priority;
+        }
+
+        public void setPriority(String priority) {
+            this.priority = priority;
+        }
     }
 }

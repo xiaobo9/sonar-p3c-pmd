@@ -20,22 +20,17 @@
 package org.sonar.plugins.pmd;
 
 import org.junit.Test;
+import org.sonar.plugins.pmd.rule.PmdRulesDefinition;
 
-import java.lang.reflect.Constructor;
+import static org.assertj.core.api.Assertions.assertThat;
 
-import static org.fest.assertions.Assertions.assertThat;
+public class PmdP3cPluginTest {
 
-public class PmdVersionTest {
-  @Test
-  public void should_get_pmd_version() {
-    assertThat(PmdVersion.getVersion()).isNotEmpty();
-  }
+    private PmdP3cPlugin plugin = new PmdP3cPlugin();
 
-  @Test
-  public void private_constructor() throws Exception {
-    Constructor constructor = PmdVersion.class.getDeclaredConstructor();
-    assertThat(constructor.isAccessible()).isFalse();
-    constructor.setAccessible(true);
-    constructor.newInstance();
-  }
+    @Test
+    public void should_contain_both_rule_repositories() {
+        assertThat(plugin.getExtensions()).contains(PmdRulesDefinition.class);
+    }
+
 }

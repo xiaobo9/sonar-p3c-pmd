@@ -28,6 +28,8 @@ public final class PmdConstants {
     public static final String XPATH_EXPRESSION_PARAM = "xpath";
     public static final String XPATH_MESSAGE_PARAM = "message";
 
+    public static final String JAVA = "java";
+
     /**
      * Key of the java version used for sources
      */

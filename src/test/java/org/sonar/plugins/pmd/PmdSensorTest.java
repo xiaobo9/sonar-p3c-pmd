@@ -29,14 +29,14 @@ import org.junit.rules.ExpectedException;
 import org.sonar.api.batch.SensorContext;
 import org.sonar.api.batch.fs.InputFile.Type;
 import org.sonar.api.batch.fs.internal.DefaultFileSystem;
-import org.sonar.api.batch.fs.internal.DefaultInputFile;
+import org.sonar.api.batch.fs.internal.TestInputFileBuilder;
 import org.sonar.api.profiles.RulesProfile;
 import org.sonar.api.resources.Project;
 import org.sonar.api.utils.XmlParserException;
 
 import java.io.File;
 
-import static org.fest.assertions.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.*;
 
 public class PmdSensorTest {
@@ -154,7 +154,14 @@ public class PmdSensorTest {
 
     private void addOneJavaFile(Type type) {
         File file = new File("x");
-        fs.add(new DefaultInputFile(
-                file.getName()).setAbsolutePath(file.getAbsolutePath()).setLanguage("java").setType(type));
+        fs.add(
+                TestInputFileBuilder.create(
+                        "sonar-pmd-test",
+                        file.getName()
+                )
+                        .setLanguage("java")
+                        .setType(type)
+                        .build()
+        );
     }
 }

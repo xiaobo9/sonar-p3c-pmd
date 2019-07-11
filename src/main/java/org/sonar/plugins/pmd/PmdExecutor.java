@@ -32,7 +32,6 @@ import org.sonar.api.batch.fs.InputFile.Type;
 import org.sonar.api.config.Settings;
 import org.sonar.api.profiles.RulesProfile;
 import org.sonar.api.utils.TimeProfiler;
-import org.sonar.plugins.java.Java;
 import org.sonar.plugins.java.api.JavaResourceLocator;
 import org.sonar.plugins.pmd.profile.PmdProfileExporter;
 
@@ -64,7 +63,7 @@ public class PmdExecutor implements BatchExtension {
     }
 
     public Report execute() {
-        TimeProfiler profiler = new TimeProfiler().start("Execute PMD " + PmdVersion.getVersion());
+        TimeProfiler profiler = new TimeProfiler().start("Execute PMD " + PMDVersion.VERSION);
 
         ClassLoader initialClassLoader = Thread.currentThread().getContextClassLoader();
 
@@ -98,7 +97,7 @@ public class PmdExecutor implements BatchExtension {
     public Iterable<File> javaFiles(Type fileType) {
         FilePredicates predicates = fs.predicates();
         return fs.files(predicates.and(
-                predicates.hasLanguage(Java.KEY),
+                predicates.hasLanguage(PmdConstants.JAVA),
                 predicates.hasType(fileType)));
     }
 
