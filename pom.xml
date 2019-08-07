@@ -5,7 +5,7 @@
 
     <groupId>org.sonarsource.pmd</groupId>
     <artifactId>sonar-pmd-p3c-plugin</artifactId>
-    <version>1.0.1</version>
+    <version>1.0.2</version>
     <packaging>sonar-plugin</packaging>
 
     <name>SonarQube PMD P3C Plugin</name>
