@@ -19,18 +19,44 @@
  */
 package org.sonar.plugins.pmd;
 
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
+import org.sonar.api.Plugin;
+import org.sonar.api.SonarQubeSide;
+import org.sonar.api.SonarRuntime;
+import org.sonar.api.internal.SonarRuntimeImpl;
+import org.sonar.api.utils.Version;
+import org.sonar.plugins.pmd.profile.PmdProfileExporter;
+import org.sonar.plugins.pmd.profile.PmdProfileImporter;
 import org.sonar.plugins.pmd.rule.PmdRulesDefinition;
+
+import java.util.List;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
 public class PmdP3cPluginTest {
 
-    private PmdP3cPlugin plugin = new PmdP3cPlugin();
+    private final PmdP3cPlugin subject = new PmdP3cPlugin();
 
+    @SuppressWarnings("unchecked")
     @Test
-    public void should_contain_both_rule_repositories() {
-        assertThat(plugin.getExtensions()).contains(PmdRulesDefinition.class);
+    void testPluginConfiguration() {
+        final SonarRuntime runtime = SonarRuntimeImpl.forSonarQube(Version.create(7, 3), SonarQubeSide.SCANNER);
+        final Plugin.Context context = new Plugin.Context(runtime);
+
+        subject.define(context);
+        final List extensions = context.getExtensions();
+        assertThat(extensions).hasSize(8);
+        assertThat(extensions).contains(
+                PmdSensor.class,
+                PmdConfiguration.class,
+                PmdExecutor.class,
+                PmdRulesDefinition.class,
+                PmdProfileExporter.class,
+                PmdProfileImporter.class,
+                PmdViolationRecorder.class
+        );
     }
+
+    // TODO Compare expected classes with all classes annotated with ScannerSide annotation.
 
 }

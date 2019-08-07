@@ -25,11 +25,9 @@ import org.dom4j.*;
 import org.dom4j.io.OutputFormat;
 import org.dom4j.io.SAXReader;
 import org.dom4j.io.XMLWriter;
+import org.xml.sax.InputSource;
 
-import java.io.File;
-import java.io.FileOutputStream;
-import java.io.FileWriter;
-import java.io.IOException;
+import java.io.*;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Paths;
 import java.util.HashMap;
@@ -153,6 +151,10 @@ public class OutHtml {
 
     private static Element getElement(File file) throws DocumentException {
         SAXReader reader = new SAXReader();
+        reader.setEntityResolver((publicId, systemId) -> new InputSource(
+                        new ByteArrayInputStream("<?xml version='1.0' encoding='UTF-8'?>".getBytes())
+                )
+        );
         Document document = reader.read(file);
         return document.getRootElement();
     }
@@ -246,7 +248,7 @@ public class OutHtml {
             rule.setMessage(map.get(attributeValue(ruleEl, "message")));
             Element description = ruleEl.element("description");
             if (description != null) {
-                rule.setDescription(map.get(description.getTextTrim()));
+                rule.setDescription(map.get(description.getText().trim()));
             }
             rule.setPriority(ruleEl.element("priority").getText().trim());
             Element example = ruleEl.element("example");

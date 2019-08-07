@@ -21,37 +21,28 @@ package org.sonar.plugins.pmd;
 
 import org.sonar.api.rules.RulePriority;
 
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Set;
+import javax.annotation.Nullable;
+import java.util.Objects;
 
 public final class PmdLevelUtils {
-    private static final Map<RulePriority, String> LEVELS_PER_PRIORITY = new HashMap<>();
-
-
-    static {
-        LEVELS_PER_PRIORITY.put(RulePriority.BLOCKER, "1");
-        LEVELS_PER_PRIORITY.put(RulePriority.CRITICAL, "2");
-        LEVELS_PER_PRIORITY.put(RulePriority.MAJOR, "3");
-        LEVELS_PER_PRIORITY.put(RulePriority.MINOR, "4");
-        LEVELS_PER_PRIORITY.put(RulePriority.INFO, "5");
-    }
+    private static final int INDEX_LEVEL = RulePriority.values().length;
 
     private PmdLevelUtils() {
         // only static methods
     }
 
-    public static RulePriority fromLevel(String level) {
-        Set<Map.Entry<RulePriority, String>> entries = LEVELS_PER_PRIORITY.entrySet();
-        for (Map.Entry<RulePriority, String> entry : entries) {
-            if (entry.getValue().equals(level)) {
-                return entry.getKey();
-            }
+    public static RulePriority fromLevel(@Nullable Integer level) {
+
+        if (Objects.isNull(level)) {
+            return null;
         }
-        return null;
+
+        final int index = Math.abs(INDEX_LEVEL - level);
+
+        return (index < INDEX_LEVEL) ? RulePriority.valueOfInt(index) : null;
     }
 
-    public static String toLevel(RulePriority priority) {
-        return LEVELS_PER_PRIORITY.get(priority);
+    public static Integer toLevel(RulePriority priority) {
+        return Math.abs(priority.ordinal() - INDEX_LEVEL);
     }
 }

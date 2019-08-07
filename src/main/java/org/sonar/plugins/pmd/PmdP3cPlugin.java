@@ -19,7 +19,7 @@
  */
 package org.sonar.plugins.pmd;
 
-import org.sonar.api.SonarPlugin;
+import org.sonar.api.Plugin;
 import org.sonar.api.config.PropertyDefinition;
 import org.sonar.plugins.pmd.profile.PmdProfileExporter;
 import org.sonar.plugins.pmd.profile.PmdProfileImporter;
@@ -28,10 +28,18 @@ import org.sonar.plugins.pmd.rule.PmdRulesDefinition;
 import java.util.LinkedList;
 import java.util.List;
 
-public class PmdP3cPlugin extends SonarPlugin {
+public class PmdP3cPlugin implements Plugin {
+
+    /**
+     * Returns a string representation of the plugin, suitable for debugging purposes only.
+     */
+    @Override
+    public String toString() {
+        return getClass().getSimpleName();
+    }
 
     @Override
-    public List getExtensions() {
+    public void define(Context context) {
         PropertyDefinition build = PropertyDefinition.builder(PmdConfiguration.PROPERTY_GENERATE_XML)
                 .defaultValue("false")
                 .name("Generate XML Report")
@@ -48,7 +56,8 @@ public class PmdP3cPlugin extends SonarPlugin {
         list.add(PmdProfileImporter.class);
         list.add(PmdViolationRecorder.class);
 
-        return list;
+        context.addExtensions(list);
     }
+
 
 }

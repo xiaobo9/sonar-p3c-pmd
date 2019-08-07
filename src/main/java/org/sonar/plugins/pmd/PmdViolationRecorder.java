@@ -1,7 +1,7 @@
 /*
  * SonarQube PMD Plugin
- * Copyright (C) 2012 SonarSource
- * sonarqube@googlegroups.com
+ * Copyright (C) 2012-2019 SonarSource SA
+ * mailto:info AT sonarsource DOT com
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public
@@ -13,63 +13,79 @@
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
  * Lesser General Public License for more details.
  *
- * You should have received a copy of the GNU Lesser General Public
- * License along with this program; if not, write to the Free Software
- * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02
+ * You should have received a copy of the GNU Lesser General Public License
+ * along with this program; if not, write to the Free Software Foundation,
+ * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 package org.sonar.plugins.pmd;
 
 import net.sourceforge.pmd.RuleViolation;
-import org.sonar.api.BatchExtension;
+import org.sonar.api.batch.ScannerSide;
 import org.sonar.api.batch.fs.FileSystem;
 import org.sonar.api.batch.fs.InputFile;
-import org.sonar.api.component.ResourcePerspectives;
-import org.sonar.api.issue.Issuable;
-import org.sonar.api.issue.Issuable.IssueBuilder;
-import org.sonar.api.rules.Rule;
-import org.sonar.api.rules.RuleFinder;
+import org.sonar.api.batch.fs.TextRange;
+import org.sonar.api.batch.rule.ActiveRules;
+import org.sonar.api.batch.sensor.SensorContext;
+import org.sonar.api.batch.sensor.issue.NewIssue;
+import org.sonar.api.batch.sensor.issue.NewIssueLocation;
+import org.sonar.api.rule.RuleKey;
 
-public class PmdViolationRecorder implements BatchExtension {
+import java.net.URI;
+
+@ScannerSide
+public class PmdViolationRecorder {
 
     private final FileSystem fs;
-    private final RuleFinder ruleFinder;
-    private final ResourcePerspectives perspectives;
+    private final ActiveRules activeRules;
 
-    public PmdViolationRecorder(FileSystem fs, RuleFinder ruleFinder, ResourcePerspectives perspectives) {
+    public PmdViolationRecorder(FileSystem fs, ActiveRules activeRules) {
         this.fs = fs;
-        this.ruleFinder = ruleFinder;
-        this.perspectives = perspectives;
+        this.activeRules = activeRules;
     }
 
-    public void saveViolation(RuleViolation pmdViolation) {
-        InputFile inputFile = findResourceFor(pmdViolation);
+    public void saveViolation(RuleViolation pmdViolation, SensorContext context) {
+        final InputFile inputFile = findResourceFor(pmdViolation);
         if (inputFile == null) {
             // Save violations only for existing resources
             return;
         }
 
-        Issuable issuable = perspectives.as(Issuable.class, inputFile);
+        final RuleKey ruleKey = findActiveRuleKeyFor(pmdViolation);
 
-        Rule rule = findRuleFor(pmdViolation);
-        if (issuable == null || rule == null) {
+        if (ruleKey == null) {
             // Save violations only for enabled rules
             return;
         }
 
-        IssueBuilder issueBuilder = issuable.newIssueBuilder()
-                .ruleKey(rule.ruleKey())
+        final NewIssue issue = context.newIssue()
+                .forRule(ruleKey);
+
+        final TextRange issueTextRange = TextRangeCalculator.calculate(pmdViolation, inputFile);
+
+        final NewIssueLocation issueLocation = issue.newLocation()
+                .on(inputFile)
                 .message(pmdViolation.getDescription())
-                .line(pmdViolation.getBeginLine());
-        issuable.addIssue(issueBuilder.build());
+                .at(issueTextRange);
+
+        issue.at(issueLocation)
+                .save();
     }
 
     private InputFile findResourceFor(RuleViolation violation) {
-        return fs.inputFile(fs.predicates().hasAbsolutePath(violation.getFilename()));
+        final URI uri = URI.create(violation.getFilename());
+        return fs.inputFile(
+                fs.predicates().hasURI(uri)
+        );
     }
 
-    private Rule findRuleFor(RuleViolation violation) {
-        String ruleKey = violation.getRule().getName();
-        return ruleFinder.findByKey(PmdConstants.REPOSITORY_KEY, ruleKey);
-    }
+    private RuleKey findActiveRuleKeyFor(RuleViolation violation) {
+        final String internalRuleKey = violation.getRule().getName();
+        RuleKey ruleKey = RuleKey.of(PmdConstants.REPOSITORY_KEY, internalRuleKey);
 
+        if (activeRules.find(ruleKey) != null) {
+            return ruleKey;
+        }
+
+        return activeRules.find(ruleKey) != null ? ruleKey : null;
+    }
 }

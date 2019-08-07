@@ -19,60 +19,57 @@
  */
 package org.sonar.plugins.pmd;
 
-import com.google.common.collect.Iterables;
-import net.sourceforge.pmd.Report;
 import net.sourceforge.pmd.RuleViolation;
-import org.sonar.api.batch.Sensor;
-import org.sonar.api.batch.SensorContext;
 import org.sonar.api.batch.fs.FilePredicates;
 import org.sonar.api.batch.fs.FileSystem;
 import org.sonar.api.batch.fs.InputFile.Type;
-import org.sonar.api.profiles.RulesProfile;
-import org.sonar.api.resources.Project;
-import org.sonar.api.utils.XmlParserException;
-
-import java.io.File;
+import org.sonar.api.batch.rule.ActiveRules;
+import org.sonar.api.batch.sensor.Sensor;
+import org.sonar.api.batch.sensor.SensorContext;
+import org.sonar.api.batch.sensor.SensorDescriptor;
 
 public class PmdSensor implements Sensor {
-    private final RulesProfile profile;
+    private final ActiveRules profile;
     private final PmdExecutor executor;
     private final PmdViolationRecorder pmdViolationRecorder;
     private final FileSystem fs;
 
-    public PmdSensor(RulesProfile profile, PmdExecutor executor, PmdViolationRecorder pmdViolationRecorder, FileSystem fs) {
+    public PmdSensor(ActiveRules profile, PmdExecutor executor, PmdViolationRecorder pmdViolationRecorder, FileSystem fs) {
         this.profile = profile;
         this.executor = executor;
         this.pmdViolationRecorder = pmdViolationRecorder;
         this.fs = fs;
     }
 
-    @Override
-    public boolean shouldExecuteOnProject(Project project) {
+    private boolean shouldExecuteOnProject() {
         return (hasFilesToCheck(Type.MAIN, PmdConstants.REPOSITORY_KEY));
     }
 
     private boolean hasFilesToCheck(Type type, String repositoryKey) {
         FilePredicates predicates = fs.predicates();
-        Iterable<File> files = fs.files(predicates.and(
+        final boolean hasMatchingFiles = fs.hasFiles(predicates.and(
                 predicates.hasLanguage(PmdConstants.JAVA),
                 predicates.hasType(type)));
-        return !Iterables.isEmpty(files) && !profile.getActiveRulesByRepository(repositoryKey).isEmpty();
-    }
-
-    @Override
-    public void analyse(Project project, SensorContext context) {
-        try {
-            Report report = executor.execute();
-            for (RuleViolation violation : report) {
-                pmdViolationRecorder.saveViolation(violation);
-            }
-        } catch (Exception e) {
-            throw new XmlParserException(e);
-        }
+        return hasMatchingFiles && !profile.findByRepository(repositoryKey).isEmpty();
     }
 
     @Override
     public String toString() {
         return getClass().getSimpleName();
+    }
+
+    @Override
+    public void describe(SensorDescriptor descriptor) {
+        descriptor.onlyOnLanguage(PmdConstants.JAVA)
+                .name("PmdP3cSensor");
+    }
+
+    @Override
+    public void execute(SensorContext context) {
+        if (shouldExecuteOnProject()) {
+            for (RuleViolation violation : executor.execute()) {
+                pmdViolationRecorder.saveViolation(violation, context);
+            }
+        }
     }
 }
